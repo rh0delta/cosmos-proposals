@@ -21,6 +21,7 @@ import { useModal } from '@/hooks';
 import { Proposal } from '@/components';
 import { formatDate } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
+import ProposalItem from './ProposalItem';
 
 function status(s: ProposalStatus) {
   switch (s) {
@@ -60,7 +61,7 @@ export function Voting({ chainName }: VotingProps) {
   const { data, isLoading, refetch } = useQuery({
     queryKey: ['get-proposals'],
     queryFn: async () => {
-      const response = await fetch('https://cosmos-api.polkachu.com/cosmos/gov/v1/proposals?pagination.limit=20', {
+      const response = await fetch('https://cosmos-api.polkachu.com/cosmos/gov/v1/proposals?pagination.limit=5', {
         headers: {
           'accept': 'application/json'
         }
@@ -69,6 +70,8 @@ export function Voting({ chainName }: VotingProps) {
       return data
     }
   });
+  console.log({ data });
+  
   
   const { modal, open: openModal, close: closeModal, setTitle } = useModal('');
 
@@ -118,7 +121,7 @@ export function Voting({ chainName }: VotingProps) {
               position="relative"
               attributes={{ onClick: () => onClickProposal(index) }}
             >
-              <GovernanceProposalItem
+              <ProposalItem
                 id={`# ${proposal.id?.toString()}`}
                 key={new Date(proposal.submit_time)?.getTime()}
                 title={proposal?.title || ''}
