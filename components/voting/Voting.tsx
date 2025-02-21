@@ -1,7 +1,7 @@
 // TODO fix type issues
 // @ts-nocheck
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useChain } from '@cosmos-kit/react';
 import {
   Proposal as IProposal,
@@ -12,6 +12,7 @@ import {
 import {
   BasicModal,
   Box,
+  Button,
   GovernanceProposalItem,
   Spinner,
   Text,
@@ -55,13 +56,27 @@ export type VotingProps = {
   chainName: string;
 };
 
+
+// Pagination
+// state variable to keep track of used pagination keys
+// state variable for dynamic page limits (could be a stretch goal)
+// side effect to refetch data from cosmos api (QN: does react query auto fetch when param changes with variable?)
+// scroll to top of div on page change
+// create ref for proposals list; ref needed for scroll functionality
+
 export function Voting({ chainName }: VotingProps) {
   const { address } = useChain(chainName);
+  const proposalsListRef = useRef(null);
   const [proposal, setProposal] = useState<IProposal>();
+  const [paginationKeys, setPaginationKeys] = useState<string[]>([]);
+  const [pageKey, setPageKey] = useState<string>();
+  console.log('pagekey', pageKey);
+  console.log('paginationkeys', paginationKeys);
+  
   const { data, isLoading, refetch } = useQuery({
-    queryKey: ['get-proposals'],
+    queryKey: ['get-proposals', pageKey],
     queryFn: async () => {
-      const response = await fetch('https://cosmos-api.polkachu.com/cosmos/gov/v1/proposals?pagination.limit=5', {
+      const response = await fetch(`https://cosmos-api.polkachu.com/cosmos/gov/v1/proposals?pagination.limit=10${pageKey ? `&pagination.key=${pageKey}` : ''}`, {
         headers: {
           'accept': 'application/json'
         }
@@ -88,6 +103,23 @@ export function Voting({ chainName }: VotingProps) {
     );
   }
 
+  const scrollToTop = () => {
+    proposalsListRef.current.scroll({
+      top: 0,
+      behavior: "smooth"
+    });
+  };
+
+  function onClickNextPage() {
+    const nextKey = data?.pagination?.next_key
+    setPageKey(nextKey)
+    setPaginationKeys(paginationKeys?.concat([nextKey]))
+  }
+
+  useEffect(() => {
+    if (pageKey && proposalsListRef.current) scrollToTop()
+  }, [pageKey])
+
   if (!address) {
     return (
       <Box my="$20" display="flex" alignItems="center" justifyContent="center">
@@ -98,21 +130,15 @@ export function Voting({ chainName }: VotingProps) {
     );
   }
 
-  if (isLoading) {
-    return (
-      <Box my="$22" display="flex" justifyContent="center">
-        <Spinner size="$5xl" color={spinnerColor} />
-      </Box>
-    );
-  }
-
   return (
     <Box mb="$20" position="relative">
       <Text fontWeight="600" fontSize="$2xl">
         Proposals
       </Text>
 
-      <Box mt="$12">
+      {!isLoading ? (
+        <>
+        <Box ref={proposalsListRef} mt="$12" height="350px" maxHeight="350px" overflowY="scroll" padding="$12" borderStyle="$solid" borderWidth="$sm" borderColor="$gray200" borderRadius="$md">
         {data.proposals && data.proposals.length > 0 ? (
           data.proposals.map((proposal, index) => (
             <Box
@@ -127,7 +153,6 @@ export function Voting({ chainName }: VotingProps) {
                 title={proposal?.title || ''}
                 status={status(proposal.status)}
                 endTime={formatDate(proposal.voting_end_time)!}
-                votes={{}}
               />
             </Box>
           ))
@@ -143,6 +168,16 @@ export function Voting({ chainName }: VotingProps) {
           </Text>
         )}
       </Box>
+      {paginationKeys?.length && <Text>There is a previous page</Text>}
+      {data?.pagination?.next_key && (
+        <Button onClick={onClickNextPage}>Next</Button>
+      )}
+      </>
+      ) : (
+        <Box my="$22" display="flex" justifyContent="center">
+        <Spinner size="$5xl" color={spinnerColor} />
+      </Box>
+      )}
 
       <BasicModal
         title={
@@ -157,10 +192,9 @@ export function Voting({ chainName }: VotingProps) {
         onClose={closeModal}
       >
         <Proposal
-          votes={data.votes}
           proposal={proposal!}
-          quorum={data.quorum!}
-          bondedTokens={data.bondedTokens!}
+          quorum={data?.quorum!}
+          bondedTokens={data?.bondedTokens!}
           chainName={chainName}
           onVoteSuccess={refetch}
         />
