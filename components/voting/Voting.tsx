@@ -85,9 +85,7 @@ export function Voting({ chainName }: VotingProps) {
       return data
     }
   });
-  console.log({ data });
-  
-  
+
   const { modal, open: openModal, close: closeModal, setTitle } = useModal('');
 
   const spinnerColor = useColorModeValue('$blackAlpha800', '$whiteAlpha900');
@@ -116,8 +114,18 @@ export function Voting({ chainName }: VotingProps) {
     setPaginationKeys(paginationKeys?.concat([nextKey]))
   }
 
+  function onClickPreviousPage() {
+    const tempArr = [...paginationKeys]
+    console.log({ tempArr });
+    tempArr.pop()
+    console.log({ tempArr });
+    const previousKey = tempArr.length >= 1 ? tempArr[tempArr.length - 1] : ''
+    setPageKey(previousKey)
+    setPaginationKeys(previousKey ? tempArr : [])
+  }
+
   useEffect(() => {
-    if (pageKey && proposalsListRef.current) scrollToTop()
+    if (proposalsListRef.current) scrollToTop()
   }, [pageKey])
 
   if (!address) {
@@ -136,48 +144,52 @@ export function Voting({ chainName }: VotingProps) {
         Proposals
       </Text>
 
-      {!isLoading ? (
-        <>
-        <Box ref={proposalsListRef} mt="$12" height="350px" maxHeight="350px" overflowY="scroll" padding="$12" borderStyle="$solid" borderWidth="$sm" borderColor="$gray200" borderRadius="$md">
-        {data.proposals && data.proposals.length > 0 ? (
-          data.proposals.map((proposal, index) => (
-            <Box
-              my="$8"
-              key={proposal.id?.toString() || index}
-              position="relative"
-              attributes={{ onClick: () => onClickProposal(index) }}
+      <Box ref={proposalsListRef} mt="$12" height="100%" maxHeight="350px" overflowY="scroll" padding="$12" borderStyle="$solid" borderWidth="$sm" borderColor="$gray200" borderRadius="$md">
+        {!isLoading ? (
+          data.proposals && data.proposals.length > 0 ? (
+            data.proposals.map((proposal, index) => (
+              <Box
+                my="$8"
+                key={proposal.id?.toString() || index}
+                position="relative"
+                attributes={{ onClick: () => onClickProposal(index) }}
+              >
+                <ProposalItem
+                  id={`# ${proposal.id?.toString()}`}
+                  key={new Date(proposal.submit_time)?.getTime()}
+                  title={proposal?.title || ''}
+                  status={status(proposal.status)}
+                  endTime={formatDate(proposal.voting_end_time)!}
+                />
+              </Box>
+            ))
+          ) : (
+            <Text
+              fontSize="$lg"
+              fontWeight="$semibold"
+              color="$textSecondary"
+              textAlign="center"
+              attributes={{ mt: '$8' }}
             >
-              <ProposalItem
-                id={`# ${proposal.id?.toString()}`}
-                key={new Date(proposal.submit_time)?.getTime()}
-                title={proposal?.title || ''}
-                status={status(proposal.status)}
-                endTime={formatDate(proposal.voting_end_time)!}
-              />
-            </Box>
-          ))
+              No proposals found
+            </Text>
+          )
         ) : (
-          <Text
-            fontSize="$lg"
-            fontWeight="$semibold"
-            color="$textSecondary"
-            textAlign="center"
-            attributes={{ mt: '$8' }}
-          >
-            No proposals found
-          </Text>
+          <Box height="100%" my="$22" display="flex" justifyContent="center">
+            <Spinner size="$5xl" color={spinnerColor} />
+          </Box>
         )}
       </Box>
-      {paginationKeys?.length && <Text>There is a previous page</Text>}
-      {data?.pagination?.next_key && (
-        <Button onClick={onClickNextPage}>Next</Button>
-      )}
-      </>
-      ) : (
-        <Box my="$22" display="flex" justifyContent="center">
-        <Spinner size="$5xl" color={spinnerColor} />
+      <Box my="$10" display="flex">
+        {!!paginationKeys.length && (
+          <Button onClick={onClickPreviousPage} attributes={{ marginRight: '$10' }}>
+            Previous
+          </Button>
+        )}
+        <Button disabled={!data?.pagination?.next_key} onClick={onClickNextPage}>
+          Next
+        </Button>
       </Box>
-      )}
 
       <BasicModal
         title={
