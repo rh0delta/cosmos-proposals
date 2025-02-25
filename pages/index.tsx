@@ -12,9 +12,7 @@ import Link from 'next/link';
 export default function Home() {
   const [selectedChain, setSelectedChain] = useState<ChainName>();
   const { setChainName, chainName, permission } = useAuthzContext();
-  console.log('index', { chainName, permission });
   
-
   return (
     <Layout>
       <Wallet

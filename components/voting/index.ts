@@ -1,2 +1,3 @@
 export * from './Voting';
-export * from './Proposal';
+export * from './ProposalInfo';
+export * from './ProposalModal';

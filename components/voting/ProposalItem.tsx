@@ -6,9 +6,13 @@ export default function ProposalItem(props: any) {
   return (
     <Box
       className={props.className}
+      {...(props.markedAsSpamByUser ? { backgroundColor: '$red100' } : {})}
       {...props.attributes}
       borderRadius="$lg"
-      borderColor="$inputBorder"
+      borderColor={{
+        base: props.markedAsSpamByUser ? "$red500" : "$inputBorder",
+        hover: props.markedAsSpamByUser ? "$red500" : "$primary"
+      }}
       borderStyle="$solid"
       borderWidth="$sm"
       minHeight={{
@@ -22,6 +26,7 @@ export default function ProposalItem(props: any) {
         mobile: "$6",
         tablet: "$10",
       }}
+      cursor={"pointer"}
       attributes={{
         "data-part-id": "root",
       }}
@@ -186,19 +191,6 @@ export default function ProposalItem(props: any) {
                 </Text>
               </Show>
             </Box>
-
-            {/* Mobile voting end time */}
-            <Stack
-              direction="vertical"
-              space="$1"
-              attributes={{
-                flexGrow: "0",
-              }}
-            >
-              <Text color="$textSecondary" fontSize="$2xs" fontWeight="$normal">
-                {props.endTime}
-              </Text>
-            </Stack>
           </Stack>
 
           {/* Vertical Divider */}
@@ -241,27 +233,6 @@ export default function ProposalItem(props: any) {
               </Text>
             </Show>
           </Stack>
-        </Stack>
-
-        {/* Desktop voting end time */}
-        <Stack
-          direction="vertical"
-          space="$1"
-          attributes={{
-            display: {
-              mobile: "none",
-              tablet: "flex",
-              desktop: "flex",
-            },
-            flexGrow: "0",
-          }}
-        >
-          <Text color="$textSecondary" fontSize="$sm" fontWeight="$semibold">
-            {props.endTimeLabel}
-          </Text>
-          <Text color="$textSecondary" fontSize="$xs" fontWeight="$normal">
-            {props.endTime}
-          </Text>
         </Stack>
       </Box>
     </Box>

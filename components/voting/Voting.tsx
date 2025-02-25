@@ -19,10 +19,11 @@ import {
   useColorModeValue,
 } from '@interchain-ui/react';
 import { useModal } from '@/hooks';
-import { Proposal } from '@/components';
-import { formatDate } from '@/utils';
 import { useQuery } from '@tanstack/react-query';
 import ProposalItem from './ProposalItem';
+import { useProposals } from '@/hooks/useProposals';
+import { setProposalAsSpam } from '@/utils/database';
+import { ProposalModal } from './ProposalModal';
 
 function status(s: ProposalStatus) {
   switch (s) {
@@ -56,37 +57,17 @@ export type VotingProps = {
   chainName: string;
 };
 
-
-// Pagination
-// state variable to keep track of used pagination keys
-// state variable for dynamic page limits (could be a stretch goal)
-// side effect to refetch data from cosmos api (QN: does react query auto fetch when param changes with variable?)
-// scroll to top of div on page change
-// create ref for proposals list; ref needed for scroll functionality
-
 export function Voting({ chainName }: VotingProps) {
   const { address } = useChain(chainName);
   const proposalsListRef = useRef(null);
   const [proposal, setProposal] = useState<IProposal>();
+  const [forceReload, setForceReload] = useState<boolean>(false);
   const [paginationKeys, setPaginationKeys] = useState<string[]>([]);
   const [pageKey, setPageKey] = useState<string>();
-  console.log('pagekey', pageKey);
-  console.log('paginationkeys', paginationKeys);
   
-  const { data, isLoading, refetch } = useQuery({
-    queryKey: ['get-proposals', pageKey],
-    queryFn: async () => {
-      const response = await fetch(`https://cosmos-api.polkachu.com/cosmos/gov/v1/proposals?pagination.limit=10${pageKey ? `&pagination.key=${pageKey}` : ''}`, {
-        headers: {
-          'accept': 'application/json'
-        }
-      })
-      const data = await response.json()
-      return data
-    }
-  });
+  const { data, isLoading, refetch } = useProposals(pageKey, forceReload)
 
-  const { modal, open: openModal, close: closeModal, setTitle } = useModal('');
+  const { modal, open: openModal, close: closeModal, setTitle } = useModal();
 
   const spinnerColor = useColorModeValue('$blackAlpha800', '$whiteAlpha900');
 
@@ -96,9 +77,17 @@ export function Voting({ chainName }: VotingProps) {
     setProposal(proposal);
     setTitle(
       `#${proposal.id?.toString()} ${
-        (proposal.content as TextProposal)?.title
+        proposal?.title
       }`
     );
+  }
+
+  async function onMarkAsSpam(proposal: any) {
+    if (forceReload) setForceReload(false)
+    const updatedProposal = await setProposalAsSpam(address, proposal)
+    if (updatedProposal) {
+      setForceReload(true)
+    }
   }
 
   const scrollToTop = () => {
@@ -116,9 +105,7 @@ export function Voting({ chainName }: VotingProps) {
 
   function onClickPreviousPage() {
     const tempArr = [...paginationKeys]
-    console.log({ tempArr });
     tempArr.pop()
-    console.log({ tempArr });
     const previousKey = tempArr.length >= 1 ? tempArr[tempArr.length - 1] : ''
     setPageKey(previousKey)
     setPaginationKeys(previousKey ? tempArr : [])
@@ -144,7 +131,25 @@ export function Voting({ chainName }: VotingProps) {
         Proposals
       </Text>
 
-      <Box ref={proposalsListRef} mt="$12" height="100%" maxHeight="350px" overflowY="scroll" padding="$12" borderStyle="$solid" borderWidth="$sm" borderColor="$gray200" borderRadius="$md">
+      <Box 
+        ref={proposalsListRef}
+        mt="$12"
+        height="100%"
+        maxHeight="350px"
+        overflowY="scroll"
+        padding="$12"
+        borderStyle="$solid"
+        borderWidth="$sm"
+        borderColor="$gray200"
+        borderRadius="$md"
+        attributes={{
+          style: { 
+            msOverflowStyle: 'none', // IE and Edge
+            scrollbarWidth: 'none', // Firefox
+            WebkitScrollbar: { display: 'none' }, // Hide scrollbar for Chrome, Safari, and Opera
+          }
+        }}
+      >
         {!isLoading ? (
           data.proposals && data.proposals.length > 0 ? (
             data.proposals.map((proposal, index) => (
@@ -159,7 +164,7 @@ export function Voting({ chainName }: VotingProps) {
                   key={new Date(proposal.submit_time)?.getTime()}
                   title={proposal?.title || ''}
                   status={status(proposal.status)}
-                  endTime={formatDate(proposal.voting_end_time)!}
+                  markedAsSpamByUser={proposal?.markedAsSpam}
                 />
               </Box>
             ))
@@ -203,12 +208,10 @@ export function Voting({ chainName }: VotingProps) {
         onOpen={openModal}
         onClose={closeModal}
       >
-        <Proposal
-          proposal={proposal!}
-          quorum={data?.quorum!}
-          bondedTokens={data?.bondedTokens!}
+        <ProposalModal
+          proposal={proposal}
           chainName={chainName}
-          onVoteSuccess={refetch}
+          onMarkAsSpam={onMarkAsSpam}
         />
       </BasicModal>
     </Box>

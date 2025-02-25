@@ -6,8 +6,7 @@
     "dev": "next dev",
     "build": "yarn build:tsc && next build",
     "build:tsc": "yarn tsc -p tsconfig.json --outDir main --module commonjs",
-    "clean": "rimraf ./types && rimraf ./src/codegen",
-    "codegen": "node scripts/codegen.js"
+    "clean": "rimraf ./types && rimraf ./src/codegen"
   },
   "jest": {
     "preset": "ts-jest",
@@ -43,7 +42,9 @@
     "@cosmos-kit/react": "2.21.2",
     "@interchain-ui/react": "1.23.22",
     "@interchain-ui/react-no-ssr": "^0.1.6",
+    "@supabase/supabase-js": "^2.48.1",
     "@tanstack/react-query": "4.32.0",
+    "@uiw/react-json-view": "^2.0.0-alpha.30",
     "bignumber.js": "9.1.0",
     "chain-registry": "^1.69.32",
     "cosmos-kit": "2.23.4",
