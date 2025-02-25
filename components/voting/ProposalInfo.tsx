@@ -1,20 +1,17 @@
 // TODO fix type issues
-import { useState } from 'react';
 // @ts-nocheck
 import {
   Box,
-  Button,
   Text,
 } from '@interchain-ui/react';
 import Markdown from 'react-markdown';
 import { Decimal } from '@cosmjs/math'
-import { ProposalProps } from '@/components';
+import { ProposalInfoProps } from '@/components';
 import Show from '../common/Show';
-import JsonView from '@uiw/react-json-view';
 
 export function ProposalInfo({
   proposal,
-}: ProposalProps) {
+}: ProposalInfoProps) {
   const description = proposal?.summary|| '';
 
   return (
