@@ -25,7 +25,6 @@ export const useProposals = (pageKey: string, forceReload?: boolean) => {
     const fetchUserVotedProposals = async () => {
       if (!address) return
       const proposals = await getUserProposalsByAddress(address, 'id:proposal_id')
-      console.log('proposals', proposals);
       
       setUserVotedProposals(proposals?.map((pr: any) => pr.id) || [])
     }
@@ -41,7 +40,15 @@ export const useProposals = (pageKey: string, forceReload?: boolean) => {
           markedAsSpam: true
         }
       }
-      return prp
+      return {
+        ...prp,
+        markedAsSpam: false
+      }
+    }).sort((a: any, b: any) => {
+      if (a?.markedAsSpam !== b?.markedAsSpam) {
+        return a?.markedAsSpam - b?.markedAsSpam
+      }
+      return Number(a.id) - Number(b.id)
     })
 
     return {
@@ -55,7 +62,3 @@ export const useProposals = (pageKey: string, forceReload?: boolean) => {
 
   return { data, isLoading, refetch }
 }
-
-// dont need to filter spam proposals
-// need to display spam votes counts (in modal or in proposal item)
-// add raw json tab in modal for individual proposal
