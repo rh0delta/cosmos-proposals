@@ -1,8 +1,8 @@
 import { Box, Text } from "@interchain-ui/react";
 import JsonView from "@uiw/react-json-view";
-import { ProposalProps } from "@/components";
+import { ProposalInfoProps } from "@/components";
 
-export function VotingInfo ({ proposal }: ProposalProps) {
+export function VotingInfo ({ proposal }: ProposalInfoProps) {
   return (
     <Box py="$12" minWidth="40rem" maxWidth="40rem">
       <Box display="flex" alignItems="center" marginBottom="$4">

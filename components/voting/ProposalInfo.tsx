@@ -12,7 +12,7 @@ import Show from '../common/Show';
 export function ProposalInfo({
   proposal,
 }: ProposalInfoProps) {
-  const description = proposal?.summary|| '';
+  const description = proposal?.content?.description || '';
 
   return (
     <Box py="$12" minWidth="40rem" maxWidth="40rem">

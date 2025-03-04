@@ -3,6 +3,19 @@ import Show from "../common/Show";
 
 
 export default function ProposalItem(props: any) {
+
+  function getStatusColor () {
+    switch (props.status) {
+      case 'pending':
+        return '$blue500';
+      case 'passed':
+        return '$green500';
+      case 'rejected':
+        return '$red500';
+      default:
+        break;
+    }
+  }
   return (
     <Box
       className={props.className}
@@ -11,7 +24,7 @@ export default function ProposalItem(props: any) {
       borderRadius="$lg"
       borderColor={{
         base: props.markedAsSpamByUser ? "$red500" : "$inputBorder",
-        hover: props.markedAsSpamByUser ? "$red500" : "$primary"
+        hover: props.markedAsSpamByUser ? "$red500" : getStatusColor()
       }}
       borderStyle="$solid"
       borderWidth="$sm"
@@ -64,57 +77,29 @@ export default function ProposalItem(props: any) {
             "data-part-id": "checkboxes",
           }}
         >
-          <Show when={props.status === "pending"}>
-            <Text
-              as={typeof props.title === "string" ? "p" : "div"}
-              color="$text"
-              fontSize="$sm"
-              fontWeight="$normal"
-              textTransform="capitalize"
-              attributes={{
-                whiteSpace: "pre-wrap"
-              }}
-            >
-              {props.status}
-            </Text>
-          </Show>
-
-          <Show when={props.status === "passed"}>
-            <Text
-              as={typeof props.title === "string" ? "p" : "div"}
-              color="$text"
-              fontSize="$sm"
-              fontWeight="$normal"
-              textTransform="capitalize"
-              attributes={{
-                whiteSpace: "pre-wrap"
-              }}
-            >
-              {props.status}
-            </Text>
-          </Show>
-
-          <Show when={props.status === "rejected"}>
-            <Text
-              as={typeof props.title === "string" ? "p" : "div"}
-              color="$text"
-              fontSize="$sm"
-              fontWeight="$normal"
-              textTransform="capitalize"
-              attributes={{
-                whiteSpace: "pre-wrap"
-              }}
-            >
-              {props.status}
-            </Text>
-          </Show>
+          <Text
+            as={typeof props.title === "string" ? "p" : "div"}
+            color={getStatusColor()}
+            fontSize="$sm"
+            fontWeight="$normal"
+            textTransform="capitalize"
+            attributes={{
+              whiteSpace: "pre-wrap"
+            }}
+          >
+            {props.status}
+          </Text>
         </Box>
 
         {/* Mid info section */}
         <Stack
-          direction="horizontal"
           space="$10"
           attributes={{
+            flexDirection: {
+              mobile: 'column',
+              tablet: 'row',
+              desktop: 'row',
+            },
             width: {
               mobile: "100%",
               tablet: "auto",
@@ -146,50 +131,18 @@ export default function ProposalItem(props: any) {
           >
             {/* Mobile Checkbox */}
             <Box flexShrink="0" width="84px">
-              <Show when={props.status === "pending"}>
-                <Text
-                  as={typeof props.title === "string" ? "p" : "div"}
-                  color="$text"
-                  fontSize="$sm"
-                  fontWeight="$normal"
-                  textTransform="capitalize"
-                  attributes={{
-                    whiteSpace: "pre-wrap"
-                  }}
-                >
-                  {props.status}
-                </Text>
-              </Show>
-
-              <Show when={props.status === "passed"}>
-                <Text
-                  as={typeof props.title === "string" ? "p" : "div"}
-                  color="$text"
-                  fontSize="$sm"
-                  fontWeight="$normal"
-                  textTransform="capitalize"
-                  attributes={{
-                    whiteSpace: "pre-wrap"
-                  }}
-                >
-                  {props.status}
-                </Text>
-              </Show>
-
-              <Show when={props.status === "rejected"}>
-                <Text
-                  as={typeof props.title === "string" ? "p" : "div"}
-                  color="$text"
-                  fontSize="$sm"
-                  fontWeight="$normal"
-                  textTransform="capitalize"
-                  attributes={{
-                    whiteSpace: "pre-wrap"
-                  }}
-                >
-                  {props.status}
-                </Text>
-              </Show>
+              <Text
+                as={typeof props.title === "string" ? "p" : "div"}
+                color={getStatusColor()}
+                fontSize="$sm"
+                fontWeight="$normal"
+                textTransform="capitalize"
+                attributes={{
+                  whiteSpace: "pre-wrap"
+                }}
+              >
+                {props.status}
+              </Text>
             </Box>
           </Stack>
 

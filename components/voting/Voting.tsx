@@ -22,7 +22,7 @@ import { useModal } from '@/hooks';
 import { useQuery } from '@tanstack/react-query';
 import ProposalItem from './ProposalItem';
 import { useProposals } from '@/hooks/useProposals';
-import { setProposalAsSpam } from '@/utils/database';
+import { setProposalAsSpam, unsetProposalAsSpam } from '@/utils/database';
 import { ProposalModal } from './ProposalModal';
 
 function status(s: ProposalStatus) {
@@ -76,18 +76,18 @@ export function Voting({ chainName }: VotingProps) {
     openModal();
     setProposal(proposal);
     setTitle(
-      `#${proposal.id?.toString()} ${
-        proposal?.title
+      `#${proposal.proposal_id?.toString()} ${
+        proposal?.content?.title
       }`
     );
   }
 
-  async function onMarkAsSpam(proposal: any) {
+  async function onMarkAsSpam(proposal: any, vote: boolean) {
     if (forceReload) setForceReload(false)
-    const updatedProposal = await setProposalAsSpam(address, proposal)
-    if (updatedProposal) {
-      setForceReload(true)
-    }
+    const updatedProposal = vote 
+      ? await setProposalAsSpam(address, proposal) 
+      : await unsetProposalAsSpam(address, proposal)
+    setForceReload(true)
   }
 
   const scrollToTop = () => {
@@ -155,14 +155,14 @@ export function Voting({ chainName }: VotingProps) {
             data.proposals.map((proposal, index) => (
               <Box
                 my="$8"
-                key={proposal.id?.toString() || index}
+                key={proposal.proposal_id?.toString() || index}
                 position="relative"
                 attributes={{ onClick: () => onClickProposal(index) }}
               >
                 <ProposalItem
-                  id={`# ${proposal.id?.toString()}`}
+                  id={`# ${proposal.proposal_id?.toString()}`}
                   key={new Date(proposal.submit_time)?.getTime()}
-                  title={proposal?.title || ''}
+                  title={proposal?.content?.title || ''}
                   status={status(proposal.status)}
                   markedAsSpamByUser={proposal?.markedAsSpam}
                 />
@@ -185,7 +185,7 @@ export function Voting({ chainName }: VotingProps) {
           </Box>
         )}
       </Box>
-      <Box my="$10" display="flex">
+      <Box my="$10" display="flex" justifyContent="flex-end">
         {!!paginationKeys.length && (
           <Button onClick={onClickPreviousPage} attributes={{ marginRight: '$10' }}>
             Previous
@@ -212,6 +212,7 @@ export function Voting({ chainName }: VotingProps) {
           proposal={proposal}
           chainName={chainName}
           onMarkAsSpam={onMarkAsSpam}
+          isProposalsLoading={isLoading}
         />
       </BasicModal>
     </Box>
